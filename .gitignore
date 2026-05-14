@@ -39,3 +39,4 @@ out/
 .env
 
 my.secrets
+/AGENTS.md
