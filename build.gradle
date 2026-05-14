@@ -27,7 +27,9 @@ dependencies {
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
-	implementation 'io.github.cdimascio:dotenv-java:3.0.0'}
+	implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+	implementation 'org.springframework.boot:spring-boot-starter-graphql'
+}
 
 tasks.named('test') {
 	useJUnitPlatform()
