@@ -37,3 +37,5 @@ out/
 .vscoode/
 
 .env
+
+my.secrets
