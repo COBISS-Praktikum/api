@@ -1,0 +1,20 @@
+type Query {
+    concept(uri: String!): Concept
+    schemes: [ConceptScheme]
+    searchConcepts(text: String!, limit: Int = 20): [Concept]
+}
+
+type Concept {
+    uri: String!
+    prefLabel: String
+    definition: String
+    broader: [Concept]
+    narrower: [Concept]
+}
+
+type ConceptScheme {
+    uri: String!
+    title: String
+    description: String
+    topConcepts: [Concept]
+}

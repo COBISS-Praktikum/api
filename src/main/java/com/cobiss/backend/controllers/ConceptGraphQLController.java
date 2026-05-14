@@ -27,10 +27,10 @@ public class ConceptGraphQLController {
 
     // Matches 'searchConcepts(text: String!, limit: Int): [Concept]'
     @QueryMapping
-    public List<SkosConcept> searchConcepts(@Argument String text, @Argument int limit) {
-        return conceptService.searchConcepts(text, limit);
+    public List<SkosConcept> searchConcepts(@Argument String text, @Argument Integer limit) {
+        int safeLimit = (limit != null) ? limit : 20;
+        return conceptService.searchConcepts(text, safeLimit);
     }
-
     // Matches 'schemes: [ConceptScheme]'
     @QueryMapping
     public List<SkosConceptScheme> schemes() {

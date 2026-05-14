@@ -1,5 +1,7 @@
 package com.cobiss.backend.models;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.neo4j.core.schema.Node;
 import org.springframework.data.neo4j.core.schema.Property;
 import org.springframework.data.neo4j.core.schema.Relationship;
@@ -7,6 +9,8 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 import java.util.List;
 
 @Node({"skos__ConceptScheme", "Resource" })
+@Getter
+@NoArgsConstructor
 public class SkosConceptScheme extends Resource {
 
     @Property("ns0__title")
