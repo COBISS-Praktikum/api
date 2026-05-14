@@ -10,6 +10,7 @@ type Concept {
     definition: String
     broader: [Concept]
     narrower: [Concept]
+    related: [Concept]
 }
 
 type ConceptScheme {
