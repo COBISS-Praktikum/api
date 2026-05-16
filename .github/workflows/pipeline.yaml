@@ -25,23 +25,27 @@ jobs:
       - name: Build Docker Image
         run: docker build -t backend-app:latest .
 
-      # Convert the Docker image into a single file so we can transport it via SSH/SCP
-      - name: Save Docker Image to Archive
+      # Move our deployment files to an isolated folder to prevent workspace permission issues
+      - name: Prepare Deployment Package
         run: |
-          docker save backend-app:latest -o backend-app.tar
-          sudo chown $USER:$USER backend-app.tar
+          mkdir -p deploy_dist
+          docker save backend-app:latest -o deploy_dist/backend-app.tar
+          cp docker-compose.yml deploy_dist/
+          sudo chown -R $USER:$USER deploy_dist
+          sudo chmod -R 755 deploy_dist
 
-      # Copy your docker-compose.yml and the image archive straight onto your Google Cloud VM
+      # Copy the artifacts from the clean, isolated directory onto your GCP VM
       - name: Copy artifacts to GCP VM via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.GCP_VM_HOST }}
           username: ${{ secrets.GCP_VM_USERNAME }}
           key: ${{ secrets.GCP_SSH_KEY }}
-          source: "docker-compose.yml,backend-app.tar"
+          source: "deploy_dist/*"
           target: "~/app"
+          strip_components: 1 # Strips the "deploy_dist" folder name so files land directly in ~/app
 
-      # Connect to the VM, unpack the container image, and launch it with the secrets
+      # Connect to the VM, load the container image, and launch it with the secrets
       - name: Executing remote SSH commands to deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -50,7 +54,7 @@ jobs:
           key: ${{ secrets.GCP_SSH_KEY }}
           script: |
             cd ~/app
-            # Load the freshly transferred image into the VM's local Docker environment
+            # Load the freshly transferred image into the VM's local Docker daemon
             docker load -i backend-app.tar
             rm backend-app.tar
             
