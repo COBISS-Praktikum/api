@@ -1,6 +1,6 @@
 services:
   app:
-    build: .
+    image: backend-app:latest
     container_name: spring_app
     ports:
       - "80:8080"
