@@ -3,12 +3,13 @@ services:
     build: .
     container_name: spring_app
     ports:
-      - "8080:8080"
+      - "80:8080"
     environment:
       - SPRING_NEO4J_URI=${NEO4J_URI}
       - SPRING_NEO4J_AUTHENTICATION_USERNAME=${NEO4J_USERNAME}
       - SPRING_NEO4J_AUTHENTICATION_PASSWORD=${NEO4J_PASSWORD}
       - SPRING_GRAPHQL_GRAPHIQL_ENABLED=true
+      - FRONTEND_URL=${FRONTEND_URL}
     # The app service automatically joins the 'default' network
     # so we don't necessarily need to list it here unless using custom names.
 

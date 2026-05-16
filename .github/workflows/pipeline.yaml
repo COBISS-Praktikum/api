@@ -20,21 +20,41 @@ jobs:
           cache: gradle
 
       - name: Build with Gradle
-        # This matches the build logic in your Dockerfile[cite: 3]
         run: ./gradlew build -x test
 
       - name: Build Docker Image
-        # This builds the image using the final multi-stage Dockerfile[cite: 3]
-        run: docker build -t backend-app .
+        run: docker build -t backend-app:latest .
 
-      - name: Deploy with Docker Compose
-        # This is where the magic happens:
-        # We map GitHub Secrets to the Env variables required by docker-compose.yml
-        env:
-          NEO4J_URI: ${{ secrets.PROD_NEO4J_URI }}
-          NEO4J_USER: ${{ secrets.PROD_NEO4J_USER }}
-          NEO4J_PASSWORD: ${{ secrets.PROD_NEO4J_PASSWORD }}
-        run: |
-          # Docker Compose uses the shell variables provided above
-          # It ignores the .env file because it's not in the repo!
-          docker compose up -d
+      # Convert the Docker image into a single file so we can transport it via SSH/SCP
+      - name: Save Docker Image to Archive
+        run: docker save backend-app:latest -o backend-app.tar
+
+      # Copy your docker-compose.yml and the image archive straight onto your Google Cloud VM
+      - name: Copy artifacts to GCP VM via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_SSH_KEY }}
+          source: "docker-compose.yml,backend-app.tar"
+          target: "~/app"
+
+      # Connect to the VM, unpack the container image, and launch it with the secrets
+      - name: Executing remote SSH commands to deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USERNAME }}
+          key: ${{ secrets.GCP_SSH_KEY }}
+          script: |
+            cd ~/app
+            # Load the freshly transferred image into the VM's local Docker environment
+            docker load -i backend-app.tar
+            rm backend-app.tar
+            
+            # Spin up the containers using the secure GitHub Secrets mapped as environment variables
+            NEO4J_URI="${{ secrets.PROD_NEO4J_URI }}" \
+            NEO4J_USERNAME="${{ secrets.PROD_NEO4J_USER }}" \
+            NEO4J_PASSWORD="${{ secrets.PROD_NEO4J_PASSWORD }}" \
+            FRONTEND_URL="${{ secrets.PROD_FRONTEND_URL }}" \
+            docker compose up -d --force-recreate
