@@ -27,7 +27,9 @@ jobs:
 
       # Convert the Docker image into a single file so we can transport it via SSH/SCP
       - name: Save Docker Image to Archive
-        run: docker save backend-app:latest -o backend-app.tar
+        run: |
+          docker save backend-app:latest -o backend-app.tar
+          sudo chown $USER:$USER backend-app.tar
 
       # Copy your docker-compose.yml and the image archive straight onto your Google Cloud VM
       - name: Copy artifacts to GCP VM via SCP
