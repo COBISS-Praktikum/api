@@ -9,18 +9,19 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 import java.util.List;
 
-/**
- * Represents a SKOS Concept.
- * Primary label is 'skos__Concept', but also inherits the 'Resource' label.
- */
 @Node({"skos__Concept", "Resource"})
 @Getter
 @Setter
 @NoArgsConstructor
 public class SkosConcept extends Resource {
 
+    // Map these as explicit flat fields populated by our repository custom query projections
+    private String prefLabelSl;
+    private String prefLabelEn;
+
+    // This holds the raw data from the DB array just in case
     @Property("skos__prefLabel")
-    private String prefLabel;
+    private List<String> rawPrefLabels;
 
     @Property("skos__altLabel")
     private String altLabel;
@@ -28,29 +29,23 @@ public class SkosConcept extends Resource {
     @Property("skos__definition")
     private String definition;
 
-    /**
-     * Based on Cypher results: 'skos__related' links point OUT to other concepts.
-     */
     @Relationship(type = "skos__related", direction = Relationship.Direction.OUTGOING)
     private List<SkosConcept> related;
 
-    /**
-     * Based on Cypher results: 'skos__broader' links point OUT to parent concepts.
-     */
     @Relationship(type = "skos__broader", direction = Relationship.Direction.OUTGOING)
     private List<SkosConcept> broader;
 
-    /**
-     * Based on Cypher results: 'skos__narrower' links are INCOMING from child concepts.
-     * Setting this to INCOMING allows Spring to find children that point to this node.
-     */
     @Relationship(type = "skos__narrower", direction = Relationship.Direction.INCOMING)
     private List<SkosConcept> narrower;
 
-    /**
-     * Links the concept to the ConceptScheme it belongs to.
-     */
     @Relationship(type = "skos__inScheme", direction = Relationship.Direction.OUTGOING)
     private SkosConceptScheme inScheme;
 
+    /**
+     * Fallback strategy for GraphQL schema compatibility.
+     * Prioritizes Slovenian, defaults to English if empty.
+     */
+    public String getPrefLabel() {
+        return this.prefLabelSl != null ? this.prefLabelSl : this.prefLabelEn;
+    }
 }

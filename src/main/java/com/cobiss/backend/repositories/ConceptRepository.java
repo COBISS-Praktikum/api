@@ -12,15 +12,27 @@ import java.util.Optional;
 @Repository
 public interface ConceptRepository extends Neo4jRepository<SkosConcept, Long> {
 
-    // This query now returns the node PLUS all its connections
     @Query("MATCH (n:skos__Concept {uri: $uri}) " +
+            "WITH n, " +
+            "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
+            "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
             "OPTIONAL MATCH (n)-[r_out:skos__broader|skos__related]->(m) " +
             "OPTIONAL MATCH (n)<-[r_in:skos__narrower]-(o) " +
-            "RETURN n, collect(r_out), collect(m), collect(r_in), collect(o)")
+            "RETURN n, " +
+            "       substring(raw_sl, 0, size(raw_sl) - 3) AS prefLabelSl, " +
+            "       substring(raw_en, 0, size(raw_en) - 3) AS prefLabelEn, " +
+            "       collect(r_out), collect(m), collect(r_in), collect(o)")
     Optional<SkosConcept> findByUri(String uri);
 
-    @Query("MATCH (n:skos__Concept) WHERE n.skos__prefLabel CONTAINS $text " +
-            "RETURN n LIMIT $limit")
+    @Query("MATCH (n:skos__Concept) " +
+            "WITH n, " +
+            "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
+            "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
+            "WHERE raw_sl CONTAINS $text OR raw_en CONTAINS $text " +
+            "RETURN n, " +
+            "       substring(raw_sl, 0, size(raw_sl) - 3) AS prefLabelSl, " +
+            "       substring(raw_en, 0, size(raw_en) - 3) AS prefLabelEn " +
+            "LIMIT $limit")
     List<SkosConcept> searchByText(String text, int limit);
 
     @Query("MATCH (s:skos__ConceptScheme) RETURN s")

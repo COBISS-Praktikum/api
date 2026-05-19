@@ -6,13 +6,14 @@ type Query {
 
 type Concept {
     uri: String!
-    prefLabel: String
+    prefLabel: String      # Resolves to getPrefLabel() (Slovenian fallback logic)
+    prefLabelSl: String    # Clean Slovenian string
+    prefLabelEn: String    # Clean English string
     definition: String
     broader: [Concept]
     narrower: [Concept]
     related: [Concept]
 }
-
 type ConceptScheme {
     uri: String!
     title: String
