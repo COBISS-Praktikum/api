@@ -1,5 +1,6 @@
 package com.cobiss.backend.services;
 
+import com.cobiss.backend.models.ConceptProjection;
 import com.cobiss.backend.models.SkosConcept;
 import com.cobiss.backend.models.SkosConceptScheme;
 import com.cobiss.backend.repositories.ConceptRepository;
@@ -17,14 +18,13 @@ public class ConceptService {
         this.conceptRepository = conceptRepository;
     }
 
-    public Optional<SkosConcept> getConceptByUri(String uri) {
-        return conceptRepository.findByUri(uri);
+    public ConceptProjection getConceptByUri(String uri) {
+        return conceptRepository.findByUri(uri).orElse(null);
     }
 
-    public List<SkosConcept> searchConcepts(String text, int limit) {
-        // Sanitize limit to prevent accidental 700k fetches
+    public List<ConceptProjection> searchConcepts(String text, int limit) {
         int safeLimit = Math.min(limit, 100);
-        return conceptRepository.searchByText(text, safeLimit);
+        return conceptRepository.searchByText(text, limit);
     }
 
     public List<SkosConceptScheme> getAllSchemes() {

@@ -24,7 +24,7 @@ public class SkosConcept extends Resource {
     private List<String> rawPrefLabels;
 
     @Property("skos__altLabel")
-    private String altLabel;
+    private List<String> altLabel;
 
     @Property("skos__definition")
     private String definition;
