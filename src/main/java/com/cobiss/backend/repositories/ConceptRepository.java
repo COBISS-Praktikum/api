@@ -16,15 +16,12 @@ public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.mo
             "WITH n, " +
             "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
             "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
-            "OPTIONAL MATCH (n)-[r_out:skos__broader]->(m) " +
-            "OPTIONAL MATCH (n)-[r_rel:skos__related]->(x) " +
-            "OPTIONAL MATCH (n)<-[r_in:skos__narrower]-(o) " +
-            "RETURN n, " + // Crucial: Returning 'n' gives SDN the structural base for the projection
+            "RETURN n.uri AS uri, " +
+            "       n.skos__definition AS definition, " +
+            "       n.skos__altLabel AS altLabel, " +
+            "       n.skos__prefLabel AS rawPrefLabels, " +
             "       raw_sl AS prefLabelSl, " +
-            "       raw_en AS prefLabelEn, " +
-            "       collect(r_out), collect(m), " +
-            "       collect(r_rel), collect(x), " +
-            "       collect(r_in), collect(o)")
+            "       raw_en AS prefLabelEn")
     Optional<ConceptProjection> findByUri(String uri);
 
     @Query("MATCH (n:skos__Concept) " +
@@ -35,10 +32,38 @@ public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.mo
             "RETURN n.uri AS uri, " +
             "       n.skos__definition AS definition, " +
             "       n.skos__altLabel AS altLabel, " +
+            "       n.skos__prefLabel AS rawPrefLabels, " +
             "       raw_sl AS prefLabelSl, " +
             "       raw_en AS prefLabelEn " +
             "LIMIT $limit")
     List<ConceptProjection> searchByText(String text, int limit);
+
+    // --- Relationship Selectors ---
+
+    // Parent concepts are INCOMING narrower arrows
+    @Query("MATCH (n:skos__Concept {uri: $uri})<-[:skos__narrower]-(m) " +
+            "WITH m, " +
+            "     [lbl IN m.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
+            "     [lbl IN m.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
+            "RETURN m.uri AS uri, m.skos__definition AS definition, m.skos__altLabel AS altLabel, " +
+            "       m.skos__prefLabel AS rawPrefLabels, raw_sl AS prefLabelSl, raw_en AS prefLabelEn")
+    List<ConceptProjection> findBroader(String uri);
+
+    // Child concepts are OUTGOING narrower arrows
+    @Query("MATCH (n:skos__Concept {uri: $uri})-[:skos__narrower]->(o) " +
+            "WITH o, " +
+            "     [lbl IN o.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
+            "     [lbl IN o.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
+            "RETURN o.uri AS uri, o.skos__definition AS definition, o.skos__altLabel AS altLabel, " +
+            "       o.skos__prefLabel AS rawPrefLabels, raw_sl AS prefLabelSl, raw_en AS prefLabelEn")
+    List<ConceptProjection> findNarrower(String uri);
+    @Query("MATCH (n:skos__Concept {uri: $uri})-[:skos__related]->(x) " +
+            "WITH x, " +
+            "     [lbl IN x.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
+            "     [lbl IN x.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
+            "RETURN x.uri AS uri, x.skos__definition AS definition, x.skos__altLabel AS altLabel, " +
+            "       x.skos__prefLabel AS rawPrefLabels, raw_sl AS prefLabelSl, raw_en AS prefLabelEn")
+    List<ConceptProjection> findRelated(String uri);
 
     @Query("MATCH (s:skos__ConceptScheme) RETURN s")
     List<SkosConceptScheme> findAllSchemes();

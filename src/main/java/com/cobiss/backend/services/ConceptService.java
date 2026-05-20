@@ -1,13 +1,11 @@
 package com.cobiss.backend.services;
 
 import com.cobiss.backend.models.ConceptProjection;
-import com.cobiss.backend.models.SkosConcept;
 import com.cobiss.backend.models.SkosConceptScheme;
 import com.cobiss.backend.repositories.ConceptRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class ConceptService {
@@ -23,11 +21,23 @@ public class ConceptService {
     }
 
     public List<ConceptProjection> searchConcepts(String text, int limit) {
-        int safeLimit = Math.min(limit, 100);
         return conceptRepository.searchByText(text, limit);
     }
 
     public List<SkosConceptScheme> getAllSchemes() {
         return conceptRepository.findAllSchemes();
+    }
+
+    // Pass relationship lookups to the controller context
+    public List<ConceptProjection> getBroader(String uri) {
+        return conceptRepository.findBroader(uri);
+    }
+
+    public List<ConceptProjection> getNarrower(String uri) {
+        return conceptRepository.findNarrower(uri);
+    }
+
+    public List<ConceptProjection> getRelated(String uri) {
+        return conceptRepository.findRelated(uri);
     }
 }
