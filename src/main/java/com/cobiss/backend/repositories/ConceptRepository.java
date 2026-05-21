@@ -28,16 +28,12 @@ public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.mo
             "WITH n, " +
             "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
             "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
-            "WHERE (raw_sl CONTAINS $text) OR (raw_en CONTAINS $text) " +
-            "RETURN n.uri AS uri, " +
-            "       n.skos__definition AS definition, " +
-            "       n.skos__altLabel AS altLabel, " +
-            "       n.skos__prefLabel AS rawPrefLabels, " +
-            "       raw_sl AS prefLabelSl, " +
-            "       raw_en AS prefLabelEn " +
+            "WHERE (raw_sl IS NOT NULL AND toLower(raw_sl) CONTAINS toLower($text)) " +
+            "   OR (raw_en IS NOT NULL AND toLower(raw_en) CONTAINS toLower($text)) " +
+            "RETURN n.uri AS uri, n.skos__definition AS definition, n.skos__altLabel AS altLabel, " +
+            "       n.skos__prefLabel AS rawPrefLabels, raw_sl AS prefLabelSl, raw_en AS prefLabelEn " +
             "LIMIT $limit")
     List<ConceptProjection> searchByText(String text, int limit);
-
     // --- Relationship Selectors ---
 
     // Parent concepts are INCOMING narrower arrows
