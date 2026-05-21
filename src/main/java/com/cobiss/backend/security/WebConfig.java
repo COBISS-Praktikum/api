@@ -18,5 +18,10 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOrigins(frontendUrl) // or http://localhost:3000
                 .allowedMethods("POST", "OPTIONS")
                 .allowedHeaders("*");
+
+        registry.addMapping("/api/**")
+                .allowedOrigins(frontendUrl)
+                .allowedMethods("GET", "POST", "OPTIONS") // ALTCHA needs GET for challenge, POST for verification
+                .allowedHeaders("*");
     }
 }
