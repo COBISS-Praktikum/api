@@ -61,6 +61,29 @@ public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.mo
             "       x.skos__prefLabel AS rawPrefLabels, raw_sl AS prefLabelSl, raw_en AS prefLabelEn")
     List<ConceptProjection> findRelated(String uri);
 
+    @Query("MATCH (n:skos__Concept {uri: $uri}) " +
+            "WITH n " +
+            "OPTIONAL MATCH (n)<-[:skos__narrower]-(broader) " +
+            "OPTIONAL MATCH (n)-[:skos__narrower]->(narrower) " +
+            "OPTIONAL MATCH (n)-[:skos__related]->(related) " +
+            "WITH n, collect(DISTINCT broader) AS broaderList, " +
+            "     collect(DISTINCT narrower) AS narrowerList, " +
+            "     collect(DISTINCT related) AS relatedList " +
+            "OPTIONAL MATCH (broaderNode)-[:skos__related]->(broaderRelated) " +
+            "WHERE broaderNode IN broaderList " +
+            "WITH n, broaderList, narrowerList, relatedList, collect(DISTINCT broaderRelated) AS broaderRelatedList " +
+            "OPTIONAL MATCH (narrowerNode)-[:skos__related]->(narrowerRelated) " +
+            "WHERE narrowerNode IN narrowerList " +
+            "WITH n, broaderList, narrowerList, relatedList, broaderRelatedList, collect(DISTINCT narrowerRelated) AS narrowerRelatedList " +
+            "WITH [n] + broaderList + narrowerList + relatedList + broaderRelatedList + narrowerRelatedList AS allNodes " +
+            "UNWIND allNodes AS node " +
+            "WITH DISTINCT node, " +
+            "     [lbl IN node.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
+            "     [lbl IN node.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
+            "RETURN node.uri AS uri, node.skos__definition AS definition, " +
+            "       node.skos__altLabel AS altLabel, node.skos__prefLabel AS rawPrefLabels, " +
+            "       raw_sl AS prefLabelSl, raw_en AS prefLabelEn")
+    List<ConceptProjection> findNeighborhood(String uri);
     @Query("MATCH (s:skos__ConceptScheme) RETURN s")
     List<SkosConceptScheme> findAllSchemes();
 }

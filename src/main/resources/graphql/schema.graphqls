@@ -2,6 +2,7 @@ type Query {
     concept(uri: String!): Concept
     schemes: [ConceptScheme]
     searchConcepts(text: String!, limit: Int = 20): [Concept]
+    conceptNeighborhood(uri: String!): [Concept!]!
 }
 
 type Concept {

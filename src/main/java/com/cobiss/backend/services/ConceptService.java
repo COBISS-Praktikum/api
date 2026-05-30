@@ -28,6 +28,10 @@ public class ConceptService {
         return conceptRepository.findAllSchemes();
     }
 
+    public List<ConceptProjection> getNeighborhood(String uri) {
+        return conceptRepository.findNeighborhood(uri);
+    }
+
     // Pass relationship lookups to the controller context
     public List<ConceptProjection> getBroader(String uri) {
         return conceptRepository.findBroader(uri);

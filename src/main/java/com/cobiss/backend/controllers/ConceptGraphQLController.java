@@ -31,6 +31,11 @@ public class ConceptGraphQLController {
     }
 
     @QueryMapping
+    public List<ConceptProjection> conceptNeighborhood(@Argument String uri) {
+        return conceptService.getNeighborhood(uri);
+    }
+
+    @QueryMapping
     public List<SkosConceptScheme> schemes() {
         return conceptService.getAllSchemes();
     }
