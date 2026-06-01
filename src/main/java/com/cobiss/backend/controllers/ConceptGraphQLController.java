@@ -1,5 +1,6 @@
 package com.cobiss.backend.controllers;
 
+import com.cobiss.backend.models.ConceptEdge;
 import com.cobiss.backend.models.ConceptProjection;
 import com.cobiss.backend.models.SkosConceptScheme;
 import com.cobiss.backend.services.ConceptService;
@@ -63,6 +64,13 @@ public class ConceptGraphQLController {
         }
         return null;
     }
+
+
+    @QueryMapping
+    public List<ConceptEdge> conceptNeighborhoodEdges(@Argument String uri) {
+        return conceptService.getNeighborhoodEdges(uri);
+    }
+
 
     @SchemaMapping(typeName = "Concept", field = "broader")
     public List<ConceptProjection> broader(ConceptProjection concept) {

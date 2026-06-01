@@ -84,6 +84,8 @@ public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.mo
             "       node.skos__altLabel AS altLabel, node.skos__prefLabel AS rawPrefLabels, " +
             "       raw_sl AS prefLabelSl, raw_en AS prefLabelEn")
     List<ConceptProjection> findNeighborhood(String uri);
+
+
     @Query("MATCH (s:skos__ConceptScheme) RETURN s")
     List<SkosConceptScheme> findAllSchemes();
 }
