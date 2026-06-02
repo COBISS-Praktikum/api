@@ -55,20 +55,20 @@ class ConceptGraphQLControllerTest {
 
     @Test
     void searchConcepts_usesDefaultLimitOf20WhenLimitIsNull() {
-        when(conceptService.searchConcepts("test", 20)).thenReturn(List.of());
+        when(conceptService.searchConcepts("test", 20, "sl")).thenReturn(List.of());
 
-        controller.searchConcepts("test", null);
+        controller.searchConcepts("test", null, null);
 
-        verify(conceptService).searchConcepts("test", 20);
+        verify(conceptService).searchConcepts("test", 20, "sl");
     }
 
     @Test
     void searchConcepts_respectsExplicitLimit() {
-        when(conceptService.searchConcepts("test", 5)).thenReturn(List.of());
+        when(conceptService.searchConcepts("test", 5, "sl")).thenReturn(List.of());
 
-        controller.searchConcepts("test", 5);
+        controller.searchConcepts("test", 5, null);
 
-        verify(conceptService).searchConcepts("test", 5);
+        verify(conceptService).searchConcepts("test", 5, "sl");
     }
 
     @Test
@@ -77,11 +77,29 @@ class ConceptGraphQLControllerTest {
                 mockConcept("http://example.com/1", "Knjiga", null),
                 mockConcept("http://example.com/2", "Knjižnica", null)
         );
-        when(conceptService.searchConcepts("Knjig", 20)).thenReturn(results);
+        when(conceptService.searchConcepts("Knjig", 20, "sl")).thenReturn(results);
 
-        assertThat(controller.searchConcepts("Knjig", null)).hasSize(2);
+        assertThat(controller.searchConcepts("Knjig", null, null)).hasSize(2);
     }
 
+
+    @Test
+    void searchConcepts_passesLangToService() {
+        when(conceptService.searchConcepts("book", 20, "en")).thenReturn(List.of());
+
+        controller.searchConcepts("book", null, "en");
+
+        verify(conceptService).searchConcepts("book", 20, "en");
+    }
+
+    @Test
+    void searchConcepts_defaultsToSlWhenLangIsNull() {
+        when(conceptService.searchConcepts("knjiga", 20, "sl")).thenReturn(List.of());
+
+        controller.searchConcepts("knjiga", null, null);
+
+        verify(conceptService).searchConcepts("knjiga", 20, "sl");
+    }
     // -------------------------------------------------------------------------
     // schemes()
     // -------------------------------------------------------------------------

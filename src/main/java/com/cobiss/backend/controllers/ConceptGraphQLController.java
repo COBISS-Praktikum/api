@@ -31,7 +31,6 @@ public class ConceptGraphQLController {
         String safeLang = (lang != null) ? lang : "sl";
         return conceptService.searchConcepts(text, safeLimit, safeLang);
     }
-
     @QueryMapping
     public List<ConceptProjection> conceptNeighborhood(@Argument String uri) {
         return conceptService.getNeighborhood(uri);
