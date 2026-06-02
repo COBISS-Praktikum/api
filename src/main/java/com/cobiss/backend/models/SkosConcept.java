@@ -18,6 +18,8 @@ public class SkosConcept extends Resource {
     // Map these as explicit flat fields populated by our repository custom query projections
     private String prefLabelSl;
     private String prefLabelEn;
+    private String definition;
+    private String scopeNote;
 
     // This holds the raw data from the DB array just in case
     @Property("skos__prefLabel")
@@ -26,8 +28,7 @@ public class SkosConcept extends Resource {
     @Property("skos__altLabel")
     private List<String> altLabel;
 
-    @Property("skos__definition")
-    private String definition;
+
 
     @Relationship(type = "skos__related", direction = Relationship.Direction.OUTGOING)
     private List<SkosConcept> related;

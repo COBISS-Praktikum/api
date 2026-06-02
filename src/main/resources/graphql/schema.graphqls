@@ -13,6 +13,7 @@ type Concept {
     prefLabelEn: String    # Clean English string
     definition: String
     broader: [Concept]
+    scopeNote: String      # <-- add this
     narrower: [Concept]
     related: [Concept]
 }

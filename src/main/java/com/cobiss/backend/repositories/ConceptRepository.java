@@ -12,12 +12,21 @@ import java.util.Optional;
 @Repository
 public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.models.SkosConcept, Long> {
 
+    // NOTE: skos__definition is stored in Neo4j as a LIST<STRING> (each element
+    // carrying its @sl language tag), exactly like skos__prefLabel. Returning the
+    // raw list into a String projection field yields null, so every query below
+    // extracts a single element the same way the prefLabel handling does:
+    //   coalesce([d IN x.skos__definition WHERE d ENDS WITH '@sl'][0], x.skos__definition[0])
+    // The @sl tag is left on the value and stripped on the frontend (see
+    // useConceptDefinition), consistent with how prefLabelSl/prefLabelEn are handled.
+
     @Query("MATCH (n:skos__Concept {uri: $uri}) " +
             "WITH n, " +
             "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
             "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
             "RETURN n.uri AS uri, " +
-            "       n.skos__definition AS definition, " +
+            "       coalesce([d IN n.skos__definition WHERE d ENDS WITH '@sl'][0], n.skos__definition[0]) AS definition, " +
+            "       coalesce([s IN n.skos__scopeNote WHERE s ENDS WITH '@sl'][0], n.skos__scopeNote[0]) AS scopeNote, " +
             "       n.skos__altLabel AS altLabel, " +
             "       n.skos__prefLabel AS rawPrefLabels, " +
             "       raw_sl AS prefLabelSl, " +
@@ -38,11 +47,15 @@ public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.mo
             "       WHEN toLower(raw_en) STARTS WITH toLower($text) THEN 3 " +
             "       ELSE 4 " +
             "     END AS score " +
-            "RETURN n.uri AS uri, n.skos__definition AS definition, n.skos__altLabel AS altLabel, " +
+            "RETURN n.uri AS uri, " +
+            "       coalesce([d IN n.skos__definition WHERE d ENDS WITH '@sl'][0], n.skos__definition[0]) AS definition, " +
+            "       n.skos__altLabel AS altLabel, " +
             "       n.skos__prefLabel AS rawPrefLabels, raw_sl AS prefLabelSl, raw_en AS prefLabelEn " +
             "ORDER BY score ASC " +
             "LIMIT $limit")
-    List<ConceptProjection> searchByText(String text, int limit);    // --- Relationship Selectors ---
+    List<ConceptProjection> searchByText(String text, int limit);
+
+    // --- Relationship Selectors ---
 
     @Query("MATCH (n:skos__Concept) " +
             "WITH n, " +
@@ -54,7 +67,9 @@ public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.mo
             "       WHEN toLower(raw_sl) STARTS WITH toLower($text) THEN 1 " +
             "       ELSE 2 " +
             "     END AS score " +
-            "RETURN n.uri AS uri, n.skos__definition AS definition, n.skos__altLabel AS altLabel, " +
+            "RETURN n.uri AS uri, " +
+            "       coalesce([d IN n.skos__definition WHERE d ENDS WITH '@sl'][0], n.skos__definition[0]) AS definition, " +
+            "       n.skos__altLabel AS altLabel, " +
             "       n.skos__prefLabel AS rawPrefLabels, raw_sl AS prefLabelSl, " +
             "       [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS prefLabelEn " +
             "ORDER BY score ASC " +
@@ -71,7 +86,9 @@ public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.mo
             "       WHEN toLower(raw_en) STARTS WITH toLower($text) THEN 1 " +
             "       ELSE 2 " +
             "     END AS score " +
-            "RETURN n.uri AS uri, n.skos__definition AS definition, n.skos__altLabel AS altLabel, " +
+            "RETURN n.uri AS uri, " +
+            "       coalesce([d IN n.skos__definition WHERE d ENDS WITH '@sl'][0], n.skos__definition[0]) AS definition, " +
+            "       n.skos__altLabel AS altLabel, " +
             "       n.skos__prefLabel AS rawPrefLabels, " +
             "       [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS prefLabelSl, " +
             "       raw_en AS prefLabelEn " +
@@ -84,7 +101,9 @@ public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.mo
             "WITH m, " +
             "     [lbl IN m.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
             "     [lbl IN m.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
-            "RETURN m.uri AS uri, m.skos__definition AS definition, m.skos__altLabel AS altLabel, " +
+            "RETURN m.uri AS uri, " +
+            "       coalesce([d IN m.skos__definition WHERE d ENDS WITH '@sl'][0], m.skos__definition[0]) AS definition, " +
+            "       m.skos__altLabel AS altLabel, " +
             "       m.skos__prefLabel AS rawPrefLabels, raw_sl AS prefLabelSl, raw_en AS prefLabelEn")
     List<ConceptProjection> findBroader(String uri);
 
@@ -93,14 +112,19 @@ public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.mo
             "WITH o, " +
             "     [lbl IN o.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
             "     [lbl IN o.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
-            "RETURN o.uri AS uri, o.skos__definition AS definition, o.skos__altLabel AS altLabel, " +
+            "RETURN o.uri AS uri, " +
+            "       coalesce([d IN o.skos__definition WHERE d ENDS WITH '@sl'][0], o.skos__definition[0]) AS definition, " +
+            "       o.skos__altLabel AS altLabel, " +
             "       o.skos__prefLabel AS rawPrefLabels, raw_sl AS prefLabelSl, raw_en AS prefLabelEn")
     List<ConceptProjection> findNarrower(String uri);
+
     @Query("MATCH (n:skos__Concept {uri: $uri})-[:skos__related]->(x) " +
             "WITH x, " +
             "     [lbl IN x.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
             "     [lbl IN x.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
-            "RETURN x.uri AS uri, x.skos__definition AS definition, x.skos__altLabel AS altLabel, " +
+            "RETURN x.uri AS uri, " +
+            "       coalesce([d IN x.skos__definition WHERE d ENDS WITH '@sl'][0], x.skos__definition[0]) AS definition, " +
+            "       x.skos__altLabel AS altLabel, " +
             "       x.skos__prefLabel AS rawPrefLabels, raw_sl AS prefLabelSl, raw_en AS prefLabelEn")
     List<ConceptProjection> findRelated(String uri);
 
@@ -123,7 +147,8 @@ public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.mo
             "WITH DISTINCT node, " +
             "     [lbl IN node.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl, " +
             "     [lbl IN node.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
-            "RETURN node.uri AS uri, node.skos__definition AS definition, " +
+            "RETURN node.uri AS uri, " +
+            "       coalesce([d IN node.skos__definition WHERE d ENDS WITH '@sl'][0], node.skos__definition[0]) AS definition, " +
             "       node.skos__altLabel AS altLabel, node.skos__prefLabel AS rawPrefLabels, " +
             "       raw_sl AS prefLabelSl, raw_en AS prefLabelEn")
     List<ConceptProjection> findNeighborhood(String uri);
