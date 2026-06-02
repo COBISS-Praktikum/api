@@ -25,10 +25,13 @@ public class ConceptService {
         return conceptRepository.findByUri(uri).orElse(null);
     }
 
-    public List<ConceptProjection> searchConcepts(String text, int limit) {
-        return conceptRepository.searchByText(text, limit);
+    public List<ConceptProjection> searchConcepts(String text, int limit, String lang) {
+        return switch (lang.toLowerCase()) {
+            case "en" -> conceptRepository.searchByTextEn(text, limit);
+            case "both" -> conceptRepository.searchByText(text, limit);
+            default -> conceptRepository.searchByTextSl(text, limit);
+        };
     }
-
     public List<SkosConceptScheme> getAllSchemes() {
         return conceptRepository.findAllSchemes();
     }

@@ -26,9 +26,10 @@ public class ConceptGraphQLController {
     }
 
     @QueryMapping
-    public List<ConceptProjection> searchConcepts(@Argument String text, @Argument Integer limit) {
+    public List<ConceptProjection> searchConcepts(@Argument String text, @Argument Integer limit, @Argument String lang) {
         int safeLimit = (limit != null) ? limit : 20;
-        return conceptService.searchConcepts(text, safeLimit);
+        String safeLang = (lang != null) ? lang : "sl";
+        return conceptService.searchConcepts(text, safeLimit, safeLang);
     }
 
     @QueryMapping
