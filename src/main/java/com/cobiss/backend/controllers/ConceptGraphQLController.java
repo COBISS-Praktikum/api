@@ -1,5 +1,6 @@
 package com.cobiss.backend.controllers;
 
+import com.cobiss.backend.models.ConceptEdge;
 import com.cobiss.backend.models.ConceptProjection;
 import com.cobiss.backend.models.SkosConceptScheme;
 import com.cobiss.backend.services.ConceptService;
@@ -25,9 +26,15 @@ public class ConceptGraphQLController {
     }
 
     @QueryMapping
-    public List<ConceptProjection> searchConcepts(@Argument String text, @Argument Integer limit) {
+    public List<ConceptProjection> searchConcepts(@Argument String text, @Argument Integer limit, @Argument String lang) {
         int safeLimit = (limit != null) ? limit : 20;
-        return conceptService.searchConcepts(text, safeLimit);
+        String safeLang = (lang != null) ? lang : "sl";
+        return conceptService.searchConcepts(text, safeLimit, safeLang);
+    }
+
+    @QueryMapping
+    public List<ConceptProjection> conceptNeighborhood(@Argument String uri) {
+        return conceptService.getNeighborhood(uri);
     }
 
     @QueryMapping
@@ -58,6 +65,13 @@ public class ConceptGraphQLController {
         }
         return null;
     }
+
+
+    @QueryMapping
+    public List<ConceptEdge> conceptNeighborhoodEdges(@Argument String uri) {
+        return conceptService.getNeighborhoodEdges(uri);
+    }
+
 
     @SchemaMapping(typeName = "Concept", field = "broader")
     public List<ConceptProjection> broader(ConceptProjection concept) {
