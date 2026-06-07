@@ -6,6 +6,7 @@ public interface ConceptProjection {
     String getUri();
     String getPrefLabelSl();
     String getPrefLabelEn();
+    String getScopeNote();      // <-- add this
     String getDefinition();
     List<String> getAltLabel();
 
