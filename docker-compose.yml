@@ -10,9 +10,7 @@ services:
       - SPRING_NEO4J_AUTHENTICATION_PASSWORD=${NEO4J_PASSWORD}
       - SPRING_GRAPHQL_GRAPHIQL_ENABLED=true
       - FRONTEND_URL=${FRONTEND_URL}
-    # The app service automatically joins the 'default' network
-    # so we don't necessarily need to list it here unless using custom names.
-
+      - ALTCHA_SECRET=${ALTCHA_SECRET}
 networks:
   default:
     driver: bridge
