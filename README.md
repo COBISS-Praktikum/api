@@ -10,6 +10,7 @@ Backend oskrbuje GraphQL končno točko, ki jo aplikacija SGC Navigator Frontend
 
 **Infrastruktura**: Zaledni sistem je nameščen na GCP, lokalni razvoj prek Docker Compose
 
+**Dokumentacija** za Javo je na voljo tukaj:
 
 ## Tehnološki sklad
 
