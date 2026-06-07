@@ -21,7 +21,22 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addMapping("/api/**")
                 .allowedOrigins(frontendUrl)
-                .allowedMethods("GET", "POST", "OPTIONS") // ALTCHA needs GET for challenge, POST for verification
+                .allowedMethods("GET", "POST", "OPTIONS")
+                .allowedHeaders("*");
+
+        registry.addMapping("/swagger-ui/**")
+                .allowedOrigins(frontendUrl)
+                .allowedMethods("GET", "OPTIONS")
+                .allowedHeaders("*");
+
+        registry.addMapping("/api-docs/**")
+                .allowedOrigins(frontendUrl)
+                .allowedMethods("GET", "OPTIONS")
+                .allowedHeaders("*");
+
+        registry.addMapping("/voyager")
+                .allowedOrigins(frontendUrl)
+                .allowedMethods("GET")
                 .allowedHeaders("*");
     }
 }

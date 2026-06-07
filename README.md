@@ -56,7 +56,7 @@ docker compose -f docker-compose.dev.yml up --build
 | `docker compose -f docker-compose.dev.yml up --build` | Zagon polnega lokalnega sklopa |
 | `docker-compose down` | Zaustavitev in čiščenje storitev |
 
-**Ključni vzorec**: Preverjanje tipov se izvede kot del procesa gradnje. Testi zahtevajo živo Neo4j povezavo — najprej zaženi `docker-compose up`. Docker gradnja preskočiprekopiraj teste (`-x test`) za hitrost; zaženi jih ločeno v CI/CD.
+**Ključni vzorec**: Preverjanje tipov se izvede kot del procesa gradnje. Testi zahtevajo živo Neo4j povezavo — najprej zaženi `docker-compose up`. Docker gradnja preskoči teste (`-x test`) za hitrost; zaženi jih ločeno v CI/CD.
 
 ## Struktura projekta
 
@@ -86,6 +86,24 @@ src/main/resources/
 src/test/java/com/cobiss/backend/
 └── BackendApplicationTests.java       # @SpringBootTest test nalaganja konteksta
 ```
+
+## Dokumentacija API-ja
+
+### GraphQL — GraphiQL Explorer
+
+GraphiQL interaktivni vmesnik je dostopen na `http://localhost:8080/graphiql` (samo razvoj).
+
+Vsebuje vgrajen panel **Docs** (ikona knjige zgoraj desno), ki samodejno prikazuje vse poizvedbe, tipe in opise polj neposredno iz sheme. Opisi so definirani z `"""` oznakami v datoteki `schema.graphqls`.
+
+### REST — Swagger UI
+
+Swagger UI za REST končne točke (`/api/auth/*`) je dostopen na `http://localhost:8080/swagger-ui`.
+
+Strojno berljiva OpenAPI specifikacija je na voljo na `http://localhost:8080/api-docs`.
+
+Swagger UI je generiran samodejno prek knjižnice **Springdoc OpenAPI** in pokriva:
+- `GET /api/auth/captcha-challenge` — generiranje novega ALTCHA izziva
+- `POST /api/auth/verify-gateway` — preverjanje rešenega ALTCHA odgovora
 
 ## GraphQL API
 
@@ -194,7 +212,7 @@ Vodovod se zagne na:
 - **`settings.gradle`** — Ime projekta: `backend`
 - **`src/main/java/com/cobiss/backend/BackendApplication.java`** — Vstopna točka (naloži `.env`, zažene Spring)
 - **`src/main/resources/application.properties`** — Neo4j URI, GraphiQL, altcha.secret
-- **`src/main/resources/graphql/schema.graphqls`** — Celotna GraphQL shema
+- **`src/main/resources/graphql/schema.graphqls`** — Celotna GraphQL shema z opisi
 - **`Dockerfile`** — Večstopenjska gradnja (gradle:8-jdk21 → eclipse-temurin:21-jre-jammy)
 - **`docker-compose.yml`** — Orkestracija Neo4j + Spring Boot za lokalni razvoj
 - **`.env`** — Lokalne poverilnice (IGNORED v git-u)

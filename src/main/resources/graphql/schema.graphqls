@@ -1,32 +1,128 @@
+"""
+Korenski tip poizvedb — vse operacije branja za SKOS tezaver.
+"""
 type Query {
-    concept(uri: String!): Concept
+    """
+    Pridobi posamezen koncept po njegovem edinstveni URI.
+    Vrne null, če koncept s tem URI ne obstaja.
+    """
+    concept(
+        "Polni URI koncepta (npr. 'http://thesaurus.cobiss.si/concept/123')"
+        uri: String!
+    ): Concept
+
+    """
+    Pridobi vse SKOS sheme konceptov v tezavru.
+    """
     schemes: [ConceptScheme]
-    searchConcepts(text: String!, limit: Int = 20, lang: String = "sl"): [Concept]
-    conceptNeighborhood(uri: String!): [Concept!]!
-    conceptNeighborhoodEdges(uri: String!): [ConceptEdge!]!
+
+    """
+    Iskanje po besedilu čez oznake konceptov.
+    Rezultati so razvrščeni po kakovosti ujemanja (točno > začetek > vsebuje).
+    """
+    searchConcepts(
+        "Iskalni niz za primerjavo z želenimi oznakami"
+        text: String!
+
+        "Največje število vrnjenih rezultatov (privzeto: 20)"
+        limit: Int = 20
+
+        """
+        Jezikovni filter za iskanje:
+        - 'sl' — išči samo po slovenskih oznakah (privzeto)
+        - 'en' — išči samo po angleških oznakah
+        - 'both' — išči po obeh jezikih
+        """
+        lang: String = "sl"
+    ): [Concept]
+
+    """
+    Vrne vsa vozlišča v neposredni soseščini danega koncepta —
+    vključno s samim konceptom, njegovimi nadrejenimi, podrejenimi in sorodnimi koncepti
+    ter sorodnimi koncepti teh sosedov.
+    Uporabno za gradnjo grafičnih prikazov.
+    """
+    conceptNeighborhood(
+        "Polni URI osrednjega koncepta"
+        uri: String!
+    ): [Concept!]!
+
+    """
+    Vrne usmerjene povezave med koncepti v soseščinskem grafu.
+    Uporabi skupaj s conceptNeighborhood za prikaz celotnega grafa vozlišč in povezav.
+    """
+    conceptNeighborhoodEdges(
+        "Polni URI osrednjega koncepta"
+        uri: String!
+    ): [ConceptEdge!]!
 }
 
+"""
+SKOS koncept, ki predstavlja izraz ali predmet v tezavru.
+"""
 type Concept {
+    "Edinstveni URI identifikator tega koncepta"
     uri: String!
-    prefLabel: String      # Resolves to getPrefLabel() (Slovenian fallback logic)
-    prefLabelSl: String    # Clean Slovenian string
-    prefLabelEn: String    # Clean English string
+
+    """
+    Razrešena želena oznaka s slovenskim prednostnim vrstnim redom.
+    Vrne prefLabelSl, če je na voljo, sicer prefLabelEn.
+    """
+    prefLabel: String
+
+    "Želena oznaka v slovenščini (brez jezikovne oznake @sl)"
+    prefLabelSl: String
+
+    "Želena oznaka v angleščini (brez jezikovne oznake @en)"
+    prefLabelEn: String
+
+    "Človeško berljiva definicija koncepta v slovenščini (z angleškim nadomestkom)"
     definition: String
+
+    "Opomba o obsegu, ki zagotavlja dodatni kontekst ali navodila za uporabo tega koncepta"
+    scopeNote: String
+
+    "Nadrejeni koncepti — koncepti, katerih specializacija je ta koncept"
     broader: [Concept]
-    scopeNote: String      # <-- add this
+
+    "Podrejeni koncepti — koncepti, ki so specializacije tega koncepta"
     narrower: [Concept]
+
+    "Sorodni koncepti — asociativne povezave, ki niso niti nadrejene niti podrejene"
     related: [Concept]
 }
 
+"""
+Usmerjena povezava med dvema konceptoma v soseščinskem grafu.
+Uporablja se za prikaz razmerij v grafičnih vizualizacijah.
+"""
 type ConceptEdge {
+    "URI izvornega koncepta (koncept, iz katerega izhaja razmerje)"
     sourceUri: String!
+
+    "URI ciljnega koncepta (koncept, na katerega kaže razmerje)"
     targetUri: String!
+
+    """
+    Vrsta razmerja med dvema konceptoma.
+    Možne vrednosti: 'broader', 'narrower', 'related'
+    """
     relationType: String!
 }
 
+"""
+SKOS shema konceptov — poimenovana zbirka konceptov, ki tvori tezaver ali besedišče.
+"""
 type ConceptScheme {
+    "Edinstveni URI identifikator te sheme konceptov"
     uri: String!
+
+    "Človeško berljiv naslov sheme konceptov"
     title: String
+
+    "Opis obsega in namena te sheme konceptov"
     description: String
+
+    "Koncepti najvišje ravni v tej shemi (vstopne točke v hierarhijo)"
     topConcepts: [Concept]
 }
