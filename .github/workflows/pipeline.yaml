@@ -60,4 +60,5 @@ jobs:
             NEO4J_USERNAME="${{ secrets.PROD_NEO4J_USER }}" \
             NEO4J_PASSWORD="${{ secrets.PROD_NEO4J_PASSWORD }}" \
             FRONTEND_URL="${{ secrets.PROD_FRONTEND_URL }}" \
+            ALTCHA_SECRET="${{ secrets.PROD_ALTCHA_SECRET }}" \
             docker compose up -d --force-recreate
