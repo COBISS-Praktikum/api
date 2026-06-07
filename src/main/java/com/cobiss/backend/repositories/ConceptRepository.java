@@ -30,11 +30,54 @@ public interface ConceptRepository extends Neo4jRepository<com.cobiss.backend.mo
             "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
             "WHERE (raw_sl IS NOT NULL AND toLower(raw_sl) CONTAINS toLower($text)) " +
             "   OR (raw_en IS NOT NULL AND toLower(raw_en) CONTAINS toLower($text)) " +
+            "WITH n, raw_sl, raw_en, " +
+            "     CASE " +
+            "       WHEN toLower(raw_sl) = toLower($text) THEN 0 " +
+            "       WHEN toLower(raw_sl) STARTS WITH toLower($text) THEN 1 " +
+            "       WHEN toLower(raw_en) = toLower($text) THEN 2 " +
+            "       WHEN toLower(raw_en) STARTS WITH toLower($text) THEN 3 " +
+            "       ELSE 4 " +
+            "     END AS score " +
             "RETURN n.uri AS uri, n.skos__definition AS definition, n.skos__altLabel AS altLabel, " +
             "       n.skos__prefLabel AS rawPrefLabels, raw_sl AS prefLabelSl, raw_en AS prefLabelEn " +
+            "ORDER BY score ASC " +
             "LIMIT $limit")
-    List<ConceptProjection> searchByText(String text, int limit);
-    // --- Relationship Selectors ---
+    List<ConceptProjection> searchByText(String text, int limit);    // --- Relationship Selectors ---
+
+    @Query("MATCH (n:skos__Concept) " +
+            "WITH n, " +
+            "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS raw_sl " +
+            "WHERE raw_sl IS NOT NULL AND toLower(raw_sl) CONTAINS toLower($text) " +
+            "WITH n, raw_sl, " +
+            "     CASE " +
+            "       WHEN toLower(raw_sl) = toLower($text) THEN 0 " +
+            "       WHEN toLower(raw_sl) STARTS WITH toLower($text) THEN 1 " +
+            "       ELSE 2 " +
+            "     END AS score " +
+            "RETURN n.uri AS uri, n.skos__definition AS definition, n.skos__altLabel AS altLabel, " +
+            "       n.skos__prefLabel AS rawPrefLabels, raw_sl AS prefLabelSl, " +
+            "       [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS prefLabelEn " +
+            "ORDER BY score ASC " +
+            "LIMIT $limit")
+    List<ConceptProjection> searchByTextSl(String text, int limit);
+
+    @Query("MATCH (n:skos__Concept) " +
+            "WITH n, " +
+            "     [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@en'][0] AS raw_en " +
+            "WHERE raw_en IS NOT NULL AND toLower(raw_en) CONTAINS toLower($text) " +
+            "WITH n, raw_en, " +
+            "     CASE " +
+            "       WHEN toLower(raw_en) = toLower($text) THEN 0 " +
+            "       WHEN toLower(raw_en) STARTS WITH toLower($text) THEN 1 " +
+            "       ELSE 2 " +
+            "     END AS score " +
+            "RETURN n.uri AS uri, n.skos__definition AS definition, n.skos__altLabel AS altLabel, " +
+            "       n.skos__prefLabel AS rawPrefLabels, " +
+            "       [lbl IN n.skos__prefLabel WHERE lbl ENDS WITH '@sl'][0] AS prefLabelSl, " +
+            "       raw_en AS prefLabelEn " +
+            "ORDER BY score ASC " +
+            "LIMIT $limit")
+    List<ConceptProjection> searchByTextEn(String text, int limit);
 
     // Parent concepts are INCOMING narrower arrows
     @Query("MATCH (n:skos__Concept {uri: $uri})<-[:skos__narrower]-(m) " +
