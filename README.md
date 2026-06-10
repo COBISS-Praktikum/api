@@ -158,15 +158,10 @@ NEO4J_URI=        # Bolt URI Neo4j instance (npr. bolt://localhost:7687)
 NEO4J_USERNAME=   # Uporabniško ime Neo4j podatkovne baze
 NEO4J_PASSWORD=   # Geslo Neo4j podatkovne baze
 FRONTEND_URL=     # Dovoljen CORS izvor frontenda (npr. https://tvoja-app.github.io)
+ALTCHA_SECRET=    # Naključen dolg skrivni ključ za podpisovanje
 ```
 
-Poleg tega nastavi v `application.properties`:
-
-```properties
-altcha.secret=    # Skrivni ključ za podpisovanje ALTCHA izzivov (zamenjaj v produkciji)
-```
-
-> **Opomba**: `BackendApplication` naloži `.env` samodejno pred zagonom Springa. V Docker okolju se spremenljivke injicirajo neposredno — `.env` datoteka ni potrebna. CORS privzeto dovoljuje `*` če `FRONTEND_URL` ni nastavljen; v produkciji vedno nastavi to spremenljivko.
+> **Opomba**: `BackendApplication` naloži `.env` samodejno pred zagonom Springa. V Docker okolju se spremenljivke injicirajo neposredno - `.env` datoteka ni potrebna. CORS privzeto dovoljuje `*` če `FRONTEND_URL` ni nastavljen; v produkciji vedno nastavi to spremenljivko.
 
 ## Docker
 
